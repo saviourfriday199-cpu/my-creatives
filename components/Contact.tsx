@@ -101,8 +101,8 @@ export function Contact() {
             {/* Map */}
             <div className="mt-12 overflow-hidden rounded-3xl border hairline">
               <iframe
-                title="O&F Pristine Solution — service area, Lagos, Nigeria"
-                src="https://www.google.com/maps?q=Lagos,+Nigeria&output=embed"
+                title="O&F Pristine Solution — service area, Calabar, Nigeria"
+                src="https://www.google.com/maps?q=Calabar,+Cross+River,+Nigeria&output=embed"
                 width="100%"
                 height="260"
                 loading="lazy"
@@ -160,7 +160,7 @@ export function Contact() {
                     id="cf-message"
                     name="message"
                     rows={3}
-                    placeholder="e.g. Three-bedroom flat in Lekki, needs a deep clean before the weekend…"
+                    placeholder="e.g. Three-bedroom flat in State Housing, needs a deep clean before the weekend…"
                     className={`${inputCls} resize-none`}
                   />
                 </div>

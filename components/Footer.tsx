@@ -100,7 +100,7 @@ export function Footer() {
               <li>{site.instagram.handle}</li>
               <li className="flex items-center gap-2">
                 <Icon name="map-pin" size={14} className="text-gold/70" />
-                Lagos, Nigeria
+                Calabar, Nigeria
               </li>
             </ul>
           </div>

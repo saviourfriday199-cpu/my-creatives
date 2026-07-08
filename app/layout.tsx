@@ -30,7 +30,8 @@ export const metadata: Metadata = {
   description: site.description,
   keywords: [
     "cleaning services Nigeria",
-    "premium cleaning Lagos",
+    "premium cleaning Calabar",
+    "cleaning company Cross River",
     "home cleaning",
     "commercial cleaning",
     "executive housekeeping",
@@ -66,6 +67,7 @@ const jsonLd = {
   address: {
     "@type": "PostalAddress",
     addressLocality: site.address.locality,
+    addressRegion: site.address.region,
     addressCountry: site.address.country,
   },
   areaServed: { "@type": "Country", name: "Nigeria" },

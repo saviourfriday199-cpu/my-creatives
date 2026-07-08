@@ -22,7 +22,8 @@ export const site = {
     url: "https://www.tiktok.com/@ofpristinesolution",
   },
   address: {
-    locality: "Lagos",
+    locality: "Calabar",
+    region: "Cross River",
     country: "NG",
   },
 } as const;
@@ -163,42 +164,42 @@ export const processSteps = [
 export const testimonials = [
   {
     name: "Adaeze Okonkwo",
-    location: "Lekki, Lagos",
+    location: "State Housing, Calabar",
     rating: 5,
     quote:
       "They cleaned my three-bedroom before my in-laws visited and I honestly didn't recognise the kitchen. Polite, punctual, and they brought everything themselves.",
   },
   {
     name: "Tunde Bakare",
-    location: "Ikoyi, Lagos",
+    location: "Marian Road, Calabar",
     rating: 5,
     quote:
       "We use O&F for our office every month. The team works around our hours and the place smells like a hotel lobby when they're done.",
   },
   {
     name: "Chiamaka Eze",
-    location: "Victoria Island, Lagos",
+    location: "Ekorinim, Calabar",
     rating: 5,
     quote:
       "Post-construction cleaning that actually removed the dust — from everywhere. Windows, vents, floors. Worth every naira.",
   },
   {
     name: "Ibrahim Suleiman",
-    location: "Abuja",
+    location: "Diamond Hill, Calabar",
     rating: 5,
     quote:
       "The executive housekeeping plan changed my weekends. I stopped cleaning and started resting. The weekly team is quiet, fast and thorough.",
   },
   {
     name: "Funke Adeyemi",
-    location: "Surulere, Lagos",
+    location: "8 Miles, Calabar",
     rating: 5,
     quote:
       "Booked a move-out clean and got my full deposit back. My landlord asked who did the cleaning — I gave him their number.",
   },
   {
     name: "Emeka Obi",
-    location: "Port Harcourt",
+    location: "Satellite Town, Calabar",
     rating: 5,
     quote:
       "Professional from the first call. They inspected, quoted, and delivered exactly what they promised. My shop has never looked better.",
