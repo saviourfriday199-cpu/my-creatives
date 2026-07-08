@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+/*
+  O&F Pristine Solution — Design tokens
+  Restrained, premium palette. Whitespace is luxury.
+*/
+@theme inline {
+  --font-display: var(--font-fraunces), "Georgia", serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  /* Primary — Deep Navy */
+  --color-ink: #0f172a;
+  --color-ink-soft: #37415b;
+  --color-ink-mute: #64748b;
+
+  /* Secondary — Emerald */
+  --color-pine: #0f766e;
+  --color-pine-soft: #14b8a6;
+  --color-pine-mist: #f0fdfa;
+
+  /* Accent — Luxury Gold */
+  --color-gold: #f59e0b;
+  --color-gold-soft: #fbbf24;
+  --color-gold-mist: #fffbeb;
+
+  /* Surfaces */
+  --color-cream: #fafaf8;
+  --color-mist: #f3f4f6;
+
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+::selection {
+  background: rgb(245 158 11 / 0.22);
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout primitives                                                   */
+/* ------------------------------------------------------------------ */
+
+.container-luxe {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 76rem;
+  padding-inline: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .container-luxe {
+    padding-inline: 3rem;
+  }
+}
+
+.hairline {
+  border-color: rgb(15 23 42 / 0.08);
+}
+
+/* Fine film-grain overlay — keeps large flat surfaces feeling tactile */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography helpers                                                  */
+/* ------------------------------------------------------------------ */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-pine);
+}
+
+/* ------------------------------------------------------------------ */
+/* Marquee (trust bar)                                                 */
+/* ------------------------------------------------------------------ */
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 36s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ------------------------------------------------------------------ */
+/* Ambient hero atmosphere                                             */
+/* ------------------------------------------------------------------ */
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -4%, 0) scale(1.06);
+  }
+}
+
+@keyframes drift-alt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-4%, 3%, 0) scale(1.08);
+  }
+}
+
+.ambient-a {
+  animation: drift 22s var(--ease-luxe) infinite;
+}
+
+.ambient-b {
+  animation: drift-alt 26s var(--ease-luxe) infinite;
+}
+
+/* Floating dust motes — sunlight in a still room */
+@keyframes mote {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: var(--mote-opacity, 0.5);
+  }
+  80% {
+    opacity: var(--mote-opacity, 0.5);
+  }
+  100% {
+    transform: translateY(-42vh);
+    opacity: 0;
+  }
+}
+
+.mote {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(245 158 11 / 0.7), transparent 70%);
+  animation: mote var(--mote-duration, 14s) linear infinite;
+  animation-delay: var(--mote-delay, 0s);
+}
+
+/* Gentle sparkle used in the "after" room scene */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.twinkle {
+  animation: twinkle 2.6s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Accessibility                                                       */
+/* ------------------------------------------------------------------ */
+
+:focus-visible {
+  outline: 2px solid var(--color-pine);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  color: white;
+  font-size: 0.875rem;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .marquee-track,
+  .ambient-a,
+  .ambient-b,
+  .mote,
+  .twinkle {
+    animation: none;
+  }
+  .mote {
+    opacity: 0.3;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.15s !important;
+  }
+}
