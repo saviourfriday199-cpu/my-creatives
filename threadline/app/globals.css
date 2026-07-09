@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+/*
+  Threadline design system — ported verbatim from design/hero.html.
+  Colors, type scale and the dark editorial feel are the ground truth.
+*/
+@theme {
+  --color-bg: #0b1120;
+  --color-bg-deep: #060910;
+  --color-panel: #131b2e;
+  --color-panel-2: #0f1626;
+  --color-gold: #e8b34c;
+  --color-gold-soft: #f5d48a;
+  --color-ice: #8fd9e8;
+  --color-text: #f2efe9;
+  --color-muted: #8891a5;
+  --color-locked: #3c4458;
+  --color-line: rgba(255, 255, 255, 0.12);
+
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg-deep);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(232, 179, 76, 0.28);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Focus ring for keyboard users across the whole app */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Thin scrollbar tuned to the dark theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-locked) transparent;
+}

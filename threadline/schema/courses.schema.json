@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://threadline.app/schema/courses.schema.json",
+  "title": "Course catalog index",
+  "description": "Top-level metadata for every course on the platform. Each entry points at a per-course dataset directory containing topics.json and dependencies.json.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "title", "code", "institution", "level", "description", "topic_count"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique course id; also the name of the dataset directory under data/.",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)+$"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 3
+      },
+      "code": {
+        "type": "string",
+        "description": "Course code as printed in the syllabus, e.g. 'BIO 301'."
+      },
+      "institution": {
+        "type": "string",
+        "minLength": 3
+      },
+      "level": {
+        "type": "string",
+        "description": "Course level, e.g. '100', '200', '300', '400'."
+      },
+      "subject": {
+        "type": "string",
+        "description": "Subject area used for catalog filtering, e.g. 'Biology'."
+      },
+      "description": {
+        "type": "string",
+        "minLength": 10
+      },
+      "topic_count": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Must equal the number of entries in the course's topics.json."
+      }
+    }
+  }
+}

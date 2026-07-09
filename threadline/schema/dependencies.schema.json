@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://threadline.app/schema/dependencies.schema.json",
+  "title": "Prerequisite edges",
+  "description": "Directed edges expressing prerequisite relationships between micro-topics. 'from' must be understood before 'to'. The full edge set of a course must form a DAG.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["from", "to", "strength", "reason"],
+    "additionalProperties": false,
+    "properties": {
+      "from": {
+        "type": "string",
+        "description": "Topic id of the prerequisite."
+      },
+      "to": {
+        "type": "string",
+        "description": "Topic id that depends on 'from'."
+      },
+      "strength": {
+        "type": "string",
+        "enum": ["hard", "soft"],
+        "description": "hard = must master before unlocking; soft = recommended but not blocking."
+      },
+      "reason": {
+        "type": "string",
+        "minLength": 10,
+        "description": "Why this prerequisite exists, in plain language."
+      }
+    }
+  }
+}
