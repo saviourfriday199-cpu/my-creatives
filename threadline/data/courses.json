@@ -1,0 +1,32 @@
+[
+  {
+    "id": "bio301-gombe",
+    "title": "Cellular Respiration & Bioenergetics",
+    "code": "BIO 301",
+    "institution": "Gombe State University",
+    "level": "300",
+    "subject": "Biology",
+    "description": "How cells harvest energy from nutrients: glycolysis, the citric acid cycle, the electron transport chain and chemiosmosis, built up one mechanism at a time from the syllabus of BIO 301.",
+    "topic_count": 16
+  },
+  {
+    "id": "chm210-gombe",
+    "title": "Chemical Reaction Kinetics",
+    "code": "CHM 210",
+    "institution": "Gombe State University",
+    "level": "200",
+    "subject": "Chemistry",
+    "description": "What controls the rate of a reaction: rate laws, reaction order, the Arrhenius equation, reaction mechanisms and catalysis, taught in dependency order from CHM 210.",
+    "topic_count": 15
+  },
+  {
+    "id": "mth204-gombe",
+    "title": "Linear Systems & Matrix Algebra",
+    "code": "MTH 204",
+    "institution": "Gombe State University",
+    "level": "200",
+    "subject": "Mathematics",
+    "description": "From a single linear equation to eigenvalues: Gaussian elimination, matrix algebra, determinants, vector spaces and diagonalization, wired so each idea rests on the one before it.",
+    "topic_count": 16
+  }
+]

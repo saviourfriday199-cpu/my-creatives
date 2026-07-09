@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threadline — Every topic knows what it's built on.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B1120;
+    --bg-deep: #060910;
+    --panel: #131B2E;
+    --gold: #E8B34C;
+    --ice: #8FD9E8;
+    --text: #F2EFE9;
+    --muted: #8891A5;
+    --locked: #3C4458;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html,body{ background: var(--bg-deep); color: var(--text); font-family: var(--font-body); overflow-x:hidden; }
+
+  .hero{
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    background: radial-gradient(120% 100% at 50% 0%, var(--bg) 0%, var(--bg-deep) 70%);
+  }
+
+  canvas#graph{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .legibility-veil{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, rgba(6,9,16,0.92) 0%, rgba(6,9,16,0.72) 32%, rgba(6,9,16,0.15) 58%, rgba(6,9,16,0) 72%);
+    pointer-events: none;
+  }
+
+  nav{
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px clamp(20px, 5vw, 64px) 0;
+  }
+  .wordmark{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .wordmark span{ color: var(--gold); }
+  .signin{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 8px 14px;
+    border-radius: 999px;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .signin:hover{ border-color: var(--gold); color: var(--gold); }
+
+  .hero-content{
+    position: relative;
+    z-index: 3;
+    padding: 0 clamp(20px, 5vw, 64px);
+    max-width: 640px;
+    margin-top: clamp(40px, 8vh, 90px);
+  }
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--ice);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ice);
+    box-shadow: 0 0 8px var(--ice);
+  }
+  h1{
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(34px, 5.6vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  h1 em{
+    font-style: normal;
+    color: var(--gold);
+  }
+  .subhead{
+    font-size: clamp(15px, 1.7vw, 17px);
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 32px;
+  }
+  .cta-row{
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .btn{
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:hover{ transform: translateY(-1px); }
+  .btn-primary{ background: var(--gold); color: #14100A; }
+  .btn-primary:hover{ opacity: 0.92; }
+  .btn-ghost{
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .btn-ghost:hover{ border-color: rgba(255,255,255,0.4); }
+
+  .stats{
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .stats b{ color: var(--text); font-weight: 500; }
+
+  footer.hint{
+    position: relative;
+    z-index: 3;
+    padding: 20px clamp(20px, 5vw, 64px) 28px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(136,145,165,0.6);
+    text-transform: uppercase;
+  }
+
+  .pillars{
+    background: var(--panel);
+    padding: 72px clamp(20px, 5vw, 64px);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+  .pillar h3{
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--gold);
+  }
+  .pillar p{
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 320px;
+  }
+
+  @media (max-width: 720px){
+    .pillars{ grid-template-columns: 1fr; }
+    .legibility-veil{ background: linear-gradient(180deg, rgba(6,9,16,0.55) 0%, rgba(6,9,16,0.92) 60%, rgba(6,9,16,0.96) 100%); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn{ transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <canvas id="graph"></canvas>
+  <div class="legibility-veil"></div>
+
+  <nav>
+    <div class="wordmark">thread<span>line</span></div>
+    <a class="signin" href="#">SIGN IN</a>
+  </nav>
+
+  <div class="hero-content">
+    <div class="eyebrow">3 courses live on the channel</div>
+    <h1>Every topic knows<br>what it's <em>built on.</em></h1>
+    <p class="subhead">
+      Course videos from your channel, broken into small topics and threaded
+      by prerequisite — so nothing unlocks before you're ready for it, and
+      spaced review makes sure nothing gets forgotten after.
+    </p>
+    <div class="cta-row">
+      <button class="btn btn-primary">Explore courses</button>
+      <button class="btn btn-ghost">How it works</button>
+    </div>
+    <div class="stats">
+      <span><b>3</b> courses</span>
+      <span><b>46</b> micro-topics</span>
+      <span><b>112</b> prerequisite links</span>
+    </div>
+  </div>
+
+  <footer class="hint">Live map of what's mastered, what's next, what's still locked</footer>
+</section>
+
+<section class="pillars">
+  <div class="pillar">
+    <h3>01 — Course-specific video</h3>
+    <p>Every video is generated from the real syllabus of one course at one school, not generic content — hosted on your own channel, embedded here.</p>
+  </div>
+  <div class="pillar">
+    <h3>02 — Prerequisite unlocking</h3>
+    <p>Topics are wired into a dependency graph. A lesson only unlocks once what it's built on has actually been mastered.</p>
+  </div>
+  <div class="pillar">
+    <h3>03 — Spaced repetition</h3>
+    <p>Review priority is weighted by the graph itself — topics that more of the tree depends on come back around first.</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  const canvas = document.getElementById('graph');
+  const ctx = canvas.getContext('2d');
+  const hero = document.querySelector('.hero');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W, H, DPR;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = hero.clientWidth;
+    H = hero.clientHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    layout();
+  }
+
+  // ---- graph data ----
+  const clusters = [
+    { label: 'BIO 301 · CELLULAR RESPIRATION', fx: 0.62, fy: 0.28, count: 16 },
+    { label: 'CHM 210 · REACTION KINETICS',    fx: 0.85, fy: 0.62, count: 14 },
+    { label: 'MTH 204 · LINEAR SYSTEMS',       fx: 0.55, fy: 0.80, count: 16 },
+  ];
+
+  let nodes = [], edges = [], crossEdges = [];
+
+  function buildGraph(){
+    nodes = []; edges = [];
+    let idCounter = 0;
+    clusters.forEach((cl, ci) => {
+      const clusterNodes = [];
+      for(let i=0;i<cl.count;i++){
+        const angle = Math.random()*Math.PI*2;
+        const dist = Math.pow(Math.random(),0.6) * 1;
+        const node = {
+          id: idCounter++,
+          cluster: ci,
+          ox: Math.cos(angle)*dist,
+          oy: Math.sin(angle)*dist,
+          x:0, y:0, cx:0, cy:0,
+          r: 3.4,
+          bobPhase: Math.random()*Math.PI*2,
+          bobSpeed: 0.4 + Math.random()*0.3,
+          bobAmp: 6 + Math.random()*6,
+          state: i === 0 ? 'mastered' : 'locked',
+          isRoot: i === 0
+        };
+        clusterNodes.push(node);
+        nodes.push(node);
+      }
+      // build a light DAG: each non-root links to 1 (sometimes 2) earlier nodes
+      for(let i=1;i<clusterNodes.length;i++){
+        const maxBack = Math.min(i, 3);
+        const backIdx = i - 1 - Math.floor(Math.random()*maxBack);
+        edges.push({ from: clusterNodes[Math.max(0,backIdx)], to: clusterNodes[i], animating:false, progress:0 });
+        if(Math.random() < 0.28 && i > 2){
+          const extra = Math.floor(Math.random()*(i-1));
+          if(extra !== backIdx){
+            edges.push({ from: clusterNodes[extra], to: clusterNodes[i], animating:false, progress:0 });
+          }
+        }
+      }
+    });
+
+    // a few faint cross-cluster links, purely decorative
+    crossEdges = [
+      { from: nodes[3], to: nodes[clusters[0].count + 5] },
+      { from: nodes[clusters[0].count + 2], to: nodes[clusters[0].count + clusters[1].count + 4] },
+    ];
+  }
+
+  function layout(){
+    const spread = Math.min(W,H) * 0.16;
+    clusters.forEach((cl, ci) => {
+      cl.cx = cl.fx * W;
+      cl.cy = cl.fy * H;
+    });
+    nodes.forEach(n => {
+      const cl = clusters[n.cluster];
+      n.cx = cl.cx + n.ox * spread;
+      n.cy = cl.cy + n.oy * spread;
+    });
+  }
+
+  buildGraph();
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ---- frontier scheduler ----
+  function tryAdvance(){
+    clusters.forEach((cl, ci) => {
+      const activeInCluster = edges.some(e => e.animating && e.from.cluster === ci);
+      if(activeInCluster) return;
+      const candidates = edges.filter(e => e.from.cluster===ci && e.from.state==='mastered' && e.to.state==='locked' && !e.animating);
+      if(candidates.length){
+        const pick = candidates[Math.floor(Math.random()*candidates.length)];
+        pick.animating = true;
+        pick.progress = 0;
+      } else {
+        // cluster complete — check if fully mastered, then reset after a pause
+        const clusterNodes = nodes.filter(n => n.cluster===ci);
+        const allDone = clusterNodes.every(n => n.state==='mastered');
+        if(allDone){
+          setTimeout(() => {
+            clusterNodes.forEach(n => { if(!n.isRoot) n.state='locked'; });
+          }, 2600);
+        }
+      }
+    });
+  }
+  setInterval(tryAdvance, 1500);
+
+  // ---- render ----
+  let last = performance.now();
+  function colorForState(state, alpha){
+    if(state==='mastered') return `rgba(232,179,76,${alpha})`;
+    if(state==='unlocked') return `rgba(143,217,232,${alpha})`;
+    return `rgba(60,68,88,${alpha})`;
+  }
+
+  function frame(now){
+    const dt = Math.min(now-last, 50); last = now;
+    ctx.clearRect(0,0,W,H);
+
+    const t = now/1000;
+    nodes.forEach(n => {
+      n.x = n.cx + Math.sin(t*n.bobSpeed + n.bobPhase) * n.bobAmp;
+      n.y = n.cy + Math.cos(t*n.bobSpeed*0.8 + n.bobPhase) * n.bobAmp*0.6;
+    });
+
+    // cross edges (static, faint)
+    ctx.setLineDash([2,5]);
+    crossEdges.forEach(e => {
+      ctx.strokeStyle = 'rgba(143,217,232,0.10)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(e.from.x, e.from.y);
+      ctx.lineTo(e.to.x, e.to.y);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // main edges
+    edges.forEach(e => {
+      const bothLocked = e.from.state==='locked' && e.to.state==='locked';
+      const alpha = bothLocked ? 0.07 : (e.to.state==='mastered' ? 0.30 : 0.16);
+      ctx.strokeStyle = colorForState(e.to.state==='mastered' ? 'mastered' : (bothLocked?'locked':'unlocked'), alpha);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(e.from.x, e.from.y);
+      ctx.lineTo(e.to.x, e.to.y);
+      ctx.stroke();
+
+      if(e.animating && !reduceMotion){
+        e.progress += dt/900;
+        const p = Math.min(e.progress, 1);
+        const px = e.from.x + (e.to.x-e.from.x)*p;
+        const py = e.from.y + (e.to.y-e.from.y)*p;
+        ctx.beginPath();
+        ctx.arc(px,py,2.6,0,Math.PI*2);
+        ctx.fillStyle = '#F5D48A';
+        ctx.shadowColor = '#E8B34C';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if(p>=1){
+          e.animating = false;
+          e.to.state = 'unlocked';
+          setTimeout(()=>{ e.to.state = 'mastered'; }, 600);
+        }
+      } else if(e.animating && reduceMotion){
+        e.animating = false;
+        e.to.state = 'unlocked';
+        e.to.state = 'mastered';
+      }
+    });
+
+    // nodes
+    nodes.forEach(n => {
+      if(n.state==='mastered'){
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,n.r+2,0,Math.PI*2);
+        ctx.fillStyle = 'rgba(232,179,76,0.14)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle = '#E8B34C';
+        ctx.shadowColor = '#E8B34C';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else if(n.state==='unlocked'){
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.strokeStyle = '#8FD9E8';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,n.r-0.8,0,Math.PI*2);
+        ctx.fillStyle = 'rgba(60,68,88,0.7)';
+        ctx.fill();
+      }
+    });
+
+    // cluster labels
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    clusters.forEach(cl => {
+      ctx.fillStyle = 'rgba(136,145,165,0.55)';
+      ctx.fillText(cl.label, cl.cx, cl.cy - Math.min(W,H)*0.16 - 14);
+    });
+
+    if(!reduceMotion){
+      requestAnimationFrame(frame);
+    }
+  }
+
+  if(reduceMotion){
+    // render a single static, partially-progressed frame
+    nodes.forEach((n,i) => { if(i % 3 === 0) n.state = 'mastered'; else if(i % 3 === 1) n.state = 'unlocked'; });
+    frame(performance.now());
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+
+</body>
+</html>
