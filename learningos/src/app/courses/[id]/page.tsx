@@ -4,6 +4,7 @@ import { getCurrentUser, hasAtLeast } from "@/lib/auth/current-user";
 import { getCourseScope, loadGraph } from "@/lib/curriculum/service";
 import AddConceptForm from "@/components/curriculum/AddConceptForm";
 import AddEdgeForm from "@/components/curriculum/AddEdgeForm";
+import ImportPanel from "@/components/curriculum/ImportPanel";
 import type { Concept } from "@/db/schema";
 
 type Params = { params: Promise<{ id: string }> };
@@ -133,6 +134,7 @@ export default async function CoursePage({ params }: Params) {
 
         {canEdit && (
           <div className="space-y-6 border-t border-line pt-8">
+            <ImportPanel courseId={id} />
             <AddConceptForm courseId={id} />
             <AddEdgeForm courseId={id} concepts={graph.concepts} />
           </div>

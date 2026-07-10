@@ -1,4 +1,4 @@
-# LearningOS Architecture — Phase 2B → 3.1
+# LearningOS Architecture — Phase 2B → 3.2
 
 This document describes the foundation and the knowledge-graph core that later
 phases build on. Phase 2B is the identity/roles/organization backbone; Phase 3.1
@@ -158,6 +158,52 @@ Content (YouTube-derived summaries/notes/flashcards/quizzes), mastery scores,
 exam-readiness, and lecturer analytics attach to `concepts`/`courses` in later
 phases; the AI Content Engine and AI Tutor populate the fields above for lecturer
 review. Nothing here blocks them.
+
+## Phase 3.2 — Content ingestion & AI Content Engine
+
+Lets a lecturer turn source material into graph content instead of hand-entering
+every concept, while staying fully in control.
+
+- **`extraction_runs`** — a staging table. A lecturer pastes course material; an
+  extractor produces a proposal (concepts + prerequisite edges, each concept
+  identified by a `key` the edges reference), stored as JSON on the run with a
+  `status` (`proposed` → `applied` / `discarded` / `error`). Nothing touches the
+  graph until the lecturer applies it.
+
+### Extractor abstraction (swap AI in, keep it testable)
+
+`lib/extraction` defines an `Extractor` interface and two implementations behind
+a factory (`getExtractor()`):
+
+- **heuristic** (default) — deterministic, dependency-free parser: turns an
+  outline/syllabus into concepts grouped by module with a sequential
+  prerequisite chain. No network, so the whole workflow and the test suite run
+  with no API key.
+- **claude** — activates when `ANTHROPIC_API_KEY` is set. Uses the Anthropic
+  TypeScript SDK (`claude-opus-4-8`) with **structured JSON output**
+  (`output_config.format`) so the response validates against the proposal
+  schema; it drafts difficulty, Bloom levels and learning objectives — the exact
+  Phase 3.1 concept fields. The system prompt instructs a DAG and "draft for a
+  human who will review", i.e. precision over recall.
+
+The proposal is validated with Zod before it is trusted, regardless of source.
+
+### Applying is DAG-safe and lecturer-gated
+
+`applyExtraction` creates the proposed concepts as **drafts** and then wires the
+edges through the same `createEdge` service used everywhere else — so every
+graph invariant still holds. Any edge that would introduce a cycle, duplicate an
+existing link, or reference an unknown concept is **skipped** (counted, not
+fatal), keeping the graph a valid DAG even if a model proposes a bad link. Only
+a `proposed` run can be applied, and only once. Writes require **lecturer+**
+within the course's university, reusing the Phase 2B/3.1 authz unchanged.
+
+### Deferred (architecture-ready)
+
+The YouTube pipeline (metadata/transcript → summary/notes/flashcards/quizzes),
+exam readiness, lecturer analytics, and the AI Tutor attach to concepts/courses
+in later phases; the extractor abstraction is the seam the YouTube-derived and
+document-derived content will plug into.
 
 ## Known limitations (by design, current phases)
 

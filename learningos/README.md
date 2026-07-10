@@ -8,9 +8,15 @@ faster. This repository is being built in phases:
   backbone.
 - **Phase 3.1 — Knowledge Graph core**: courses, concepts, and the
   prerequisite graph (DAG-enforced) that concepts are wired into.
+- **Phase 3.2 — Content ingestion & AI Content Engine**: paste course
+  material → AI drafts concepts + prerequisites (with difficulty, Bloom levels,
+  objectives) → the lecturer reviews and applies into the graph. A deterministic
+  heuristic extractor runs when no API key is configured, so the workflow (and
+  CI) needs no network; the Claude-backed extractor activates when
+  `ANTHROPIC_API_KEY` is set.
 
-AI content extraction, the YouTube pipeline, exam readiness, analytics, and the
-AI tutor are anticipated in the data model and come in later phases.
+The YouTube pipeline, exam readiness, analytics, and the AI tutor are
+anticipated in the data model and come in later phases.
 
 Every feature must strengthen at least one of: the knowledge graph, lecturer
 content creation, student mastery, or adaptive learning. The foundation here
@@ -74,6 +80,9 @@ to choose your own; otherwise one is generated and shown once).
 | GET    | `/api/courses/:id`                      | authenticated     |
 | GET/POST | `/api/courses/:id/concepts`           | GET auth · POST lecturer |
 | GET/POST | `/api/courses/:id/edges`              | GET auth · POST lecturer |
+| GET/POST | `/api/courses/:id/extractions`        | GET auth · POST lecturer (run AI draft) |
+| POST | `/api/extractions/:id/apply`             | lecturer (apply into graph) |
+| POST | `/api/extractions/:id/discard`           | lecturer |
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the data model, auth
 design, and the path to Postgres in production.

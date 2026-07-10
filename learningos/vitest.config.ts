@@ -12,6 +12,8 @@ export default defineConfig({
     env: {
       DATABASE_URL: "file:./test.db",
       NODE_ENV: "test",
+      // Force the deterministic heuristic extractor (no network) in tests.
+      ANTHROPIC_API_KEY: "",
     },
   },
   resolve: {

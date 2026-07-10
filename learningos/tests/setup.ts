@@ -20,6 +20,7 @@ beforeAll(() => {
 beforeEach(() => {
   control.pragma("foreign_keys = OFF");
   for (const t of [
+    "extraction_runs",
     "concept_edges",
     "concepts",
     "courses",

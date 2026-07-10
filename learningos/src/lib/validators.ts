@@ -70,6 +70,11 @@ export const createEdgeSchema = z.object({
   reason: z.string().trim().max(1000).optional(),
 });
 
+export const runExtractionSchema = z.object({
+  sourceText: z.string().trim().min(20).max(100000),
+});
+
+export type RunExtractionInput = z.infer<typeof runExtractionSchema>;
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
 export type CreateConceptInput = z.infer<typeof createConceptSchema>;
 export type CreateEdgeInput = z.infer<typeof createEdgeSchema>;

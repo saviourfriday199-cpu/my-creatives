@@ -236,6 +236,55 @@ export const conceptEdges = sqliteTable(
   }),
 );
 
+/* ============================================================================
+ * Phase 3.2 — Content ingestion & AI Content Engine
+ *
+ * A lecturer submits source material (course outline / syllabus / notes) for a
+ * course; an extractor proposes concepts + prerequisite edges into a staging
+ * row. The lecturer reviews the proposal and either applies it (creating draft
+ * concepts/edges in the graph) or discards it — the lecturer is always in
+ * control, AI never publishes directly. The proposal is stored as JSON so the
+ * review UI can render it without re-running extraction.
+ * ========================================================================== */
+
+export const EXTRACTION_STATUS = [
+  "proposed",
+  "applied",
+  "discarded",
+  "error",
+] as const;
+export type ExtractionStatus = (typeof EXTRACTION_STATUS)[number];
+
+export const extractionRuns = sqliteTable(
+  "extraction_runs",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    /** The pasted source material the extraction ran against. */
+    sourceText: text("source_text").notNull(),
+    status: text("status", { enum: EXTRACTION_STATUS })
+      .notNull()
+      .default("proposed"),
+    /** Which extractor produced this: "heuristic" or "claude:<model>". */
+    model: text("model").notNull(),
+    /** JSON-encoded ExtractionProposal (concepts + edges) for lecturer review. */
+    proposal: text("proposal").notNull(),
+    error: text("error"),
+    createdById: text("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => ({
+    byCourse: index("extraction_runs_course_idx").on(t.courseId),
+  }),
+);
+
+export type ExtractionRun = typeof extractionRuns.$inferSelect;
+export type NewExtractionRun = typeof extractionRuns.$inferInsert;
+
 export type University = typeof universities.$inferSelect;
 export type NewUniversity = typeof universities.$inferInsert;
 export type Department = typeof departments.$inferSelect;
