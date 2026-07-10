@@ -1,4 +1,4 @@
-# LearningOS Architecture — Phase 2B → 3.2
+# LearningOS Architecture — Phase 2B → 3.3
 
 This document describes the foundation and the knowledge-graph core that later
 phases build on. Phase 2B is the identity/roles/organization backbone; Phase 3.1
@@ -204,6 +204,40 @@ The YouTube pipeline (metadata/transcript → summary/notes/flashcards/quizzes),
 exam readiness, lecturer analytics, and the AI Tutor attach to concepts/courses
 in later phases; the extractor abstraction is the seam the YouTube-derived and
 document-derived content will plug into.
+
+## Phase 3.3 — YouTube content pipeline
+
+YouTube is the **video delivery layer**; LearningOS is the **intelligence
+layer**. A concept carries a `video_id` (added to `concepts`); around it,
+generated teaching content is attached as **`content_items`** (kind =
+`summary` / `notes` / `flashcards` / `quiz`; prose in `body`, structured
+flashcards/quizzes as JSON in `body`). Every item is a **draft** until a
+lecturer publishes it — students only ever see published items (`listContent`
+takes a `publishedOnly` flag; the content GET route sets it for non-editors).
+
+- **URL handling** — `lib/youtube/url.ts` parses a video id from every common
+  URL shape (watch, `youtu.be`, embed, shorts, bare id); pure and unit-tested.
+  `lib/youtube/metadata.ts` fetches title/author via YouTube's **oEmbed**
+  endpoint (no API key), returning null on any failure — metadata is a
+  nice-to-have, never load-bearing.
+- **Content generation** — mirrors the Phase 3.2 extractor seam: a
+  `ContentGenerator` interface with a **deterministic heuristic** default (shapes
+  a transcript into valid summary/notes/flashcards/quiz with no network) and a
+  **Claude** generator (`claude-opus-4-8`, structured JSON output) that activates
+  on `ANTHROPIC_API_KEY`. Output is Zod-validated regardless of source.
+- **Service + routes** — concept-scoped, lecturer-gated: link a video, generate
+  drafts, list (publish-filtered by role), publish/unpublish, delete. All writes
+  reuse the same `assertUniversityScope` tenancy guard.
+- **UI** — a concept detail page renders the embedded video and published/authored
+  content; an editor-only `LecturerStudio` handles the link-video → generate →
+  review → publish loop.
+
+### Deferred (architecture-ready)
+
+Exam readiness (per-concept practice/past questions, mastery score, readiness
+prediction), lecturer analytics, and the AI Tutor (answering from approved
+course materials in priority order) attach to concepts/content in later phases —
+the `content_items` corpus is the retrieval surface the tutor will draw on.
 
 ## Known limitations (by design, current phases)
 

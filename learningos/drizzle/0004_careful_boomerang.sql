@@ -1,0 +1,1 @@
+ALTER TABLE `concepts` ADD `video_id` text;

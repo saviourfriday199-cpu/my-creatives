@@ -15,8 +15,14 @@ faster. This repository is being built in phases:
   CI) needs no network; the Claude-backed extractor activates when
   `ANTHROPIC_API_KEY` is set.
 
-The YouTube pipeline, exam readiness, analytics, and the AI tutor are
-anticipated in the data model and come in later phases.
+- **Phase 3.3 — YouTube content pipeline**: link a YouTube video to a concept,
+  then generate draft study content (summary, lecture notes, flashcards, quiz)
+  from a transcript/notes → lecturer reviews → publishes. YouTube is the video
+  delivery layer; LearningOS is the intelligence layer. Same heuristic-default /
+  Claude-when-keyed generator split as 3.2.
+
+Exam readiness, lecturer analytics, and the AI tutor are anticipated in the data
+model and come in later phases.
 
 Every feature must strengthen at least one of: the knowledge graph, lecturer
 content creation, student mastery, or adaptive learning. The foundation here
@@ -83,6 +89,10 @@ to choose your own; otherwise one is generated and shown once).
 | GET/POST | `/api/courses/:id/extractions`        | GET auth · POST lecturer (run AI draft) |
 | POST | `/api/extractions/:id/apply`             | lecturer (apply into graph) |
 | POST | `/api/extractions/:id/discard`           | lecturer |
+| POST | `/api/concepts/:id/video`                | lecturer (link YouTube video) |
+| GET/POST | `/api/concepts/:id/content`          | GET auth (published for students) · POST lecturer (generate) |
+| POST | `/api/content/:id/publish` · `/unpublish` | lecturer |
+| DELETE | `/api/content/:id`                     | lecturer |
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the data model, auth
 design, and the path to Postgres in production.

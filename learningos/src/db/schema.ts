@@ -194,6 +194,8 @@ export const concepts = sqliteTable(
     difficulty: integer("difficulty"),
     bloomLevel: text("bloom_level", { enum: BLOOM_LEVELS }),
     learningObjective: text("learning_objective"),
+    /** YouTube video id for this concept's lesson (Phase 3.3 delivery layer). */
+    videoId: text("video_id"),
     status: text("status", { enum: PUBLISH_STATUS }).notNull().default("draft"),
     createdById: text("created_by_id").references(() => users.id, {
       onDelete: "set null",
@@ -284,6 +286,51 @@ export const extractionRuns = sqliteTable(
 
 export type ExtractionRun = typeof extractionRuns.$inferSelect;
 export type NewExtractionRun = typeof extractionRuns.$inferInsert;
+
+/* ============================================================================
+ * Phase 3.3 — YouTube content pipeline
+ *
+ * YouTube is the video delivery layer; LearningOS is the intelligence layer. A
+ * concept's video id lives on the concept (Phase 3.1). Around it, generated
+ * teaching content — summary, lecture notes, flashcards, quizzes — is attached
+ * as content_items. Everything is created as a draft for lecturer review and
+ * only shown to students once published (same review-then-publish gate as the
+ * content engine). Structured content (flashcards/quizzes) is stored as JSON in
+ * `body`; prose (summary/notes) as plain text.
+ * ========================================================================== */
+
+export const CONTENT_KINDS = ["summary", "notes", "flashcards", "quiz"] as const;
+export type ContentKind = (typeof CONTENT_KINDS)[number];
+
+export const CONTENT_SOURCES = ["ai", "manual"] as const;
+export type ContentSource = (typeof CONTENT_SOURCES)[number];
+
+export const contentItems = sqliteTable(
+  "content_items",
+  {
+    id: text("id").primaryKey(),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => concepts.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: CONTENT_KINDS }).notNull(),
+    /** Prose for summary/notes; JSON string for flashcards/quiz. */
+    body: text("body").notNull(),
+    status: text("status", { enum: PUBLISH_STATUS }).notNull().default("draft"),
+    source: text("source", { enum: CONTENT_SOURCES }).notNull().default("ai"),
+    /** Extractor/generator id, e.g. "heuristic" or "claude:claude-opus-4-8". */
+    model: text("model"),
+    createdById: text("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => ({
+    byConcept: index("content_items_concept_idx").on(t.conceptId),
+  }),
+);
+
+export type ContentItem = typeof contentItems.$inferSelect;
+export type NewContentItem = typeof contentItems.$inferInsert;
 
 export type University = typeof universities.$inferSelect;
 export type NewUniversity = typeof universities.$inferInsert;

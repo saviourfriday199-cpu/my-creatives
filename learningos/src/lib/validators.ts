@@ -74,6 +74,14 @@ export const runExtractionSchema = z.object({
   sourceText: z.string().trim().min(20).max(100000),
 });
 
+export const setVideoSchema = z.object({
+  url: z.string().trim().min(1).max(500),
+});
+
+export const generateContentSchema = z.object({
+  sourceText: z.string().trim().min(20).max(100000),
+});
+
 export type RunExtractionInput = z.infer<typeof runExtractionSchema>;
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
 export type CreateConceptInput = z.infer<typeof createConceptSchema>;

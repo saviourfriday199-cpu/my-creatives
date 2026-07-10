@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import { getCurrentUser, hasAtLeast } from "@/lib/auth/current-user";
@@ -84,9 +85,17 @@ export default async function CoursePage({ params }: Params) {
                     return (
                       <li key={c.id} className="card">
                         <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className="font-display text-[15px] font-medium">
+                          <Link
+                            href={`/courses/${id}/concepts/${c.id}`}
+                            className="font-display text-[15px] font-medium hover:text-gold"
+                          >
                             {c.title}
-                          </span>
+                          </Link>
+                          {c.videoId && (
+                            <span className="font-mono text-[10px] text-gold" title="Has a video">
+                              ▶
+                            </span>
+                          )}
                           {c.bloomLevel && (
                             <span className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-ice">
                               {c.bloomLevel}
