@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { AuthError } from "@/lib/auth/service";
 import { AuthzError } from "@/lib/auth/authz";
 import { OrgError } from "@/lib/org/service";
+import { CurriculumError } from "@/lib/curriculum/service";
 
 export function json<T>(data: T, status = 200): NextResponse {
   return NextResponse.json(data, { status });
@@ -32,6 +33,15 @@ export function route<Args extends unknown[]>(
       if (e instanceof AuthzError) return error(e.message, e.status);
       if (e instanceof OrgError) {
         return error(e.message, e.code === "not_found" ? 404 : 409, e.code);
+      }
+      if (e instanceof CurriculumError) {
+        const status =
+          e.code === "not_found"
+            ? 404
+            : e.code === "invalid" || e.code === "cycle"
+              ? 422
+              : 409;
+        return error(e.message, status, e.code);
       }
       if (e instanceof AuthError) {
         const status = e.code === "email_taken" ? 409 : 401;

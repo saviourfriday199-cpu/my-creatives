@@ -8,7 +8,7 @@ import { SESSION_COOKIE } from "@/lib/auth/constants";
  * there) — real authentication and authorization happen in the server
  * components and route handlers via getCurrentUser()/requireRole().
  */
-const PROTECTED = ["/dashboard", "/admin"];
+const PROTECTED = ["/dashboard", "/admin", "/courses"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -27,5 +27,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/courses/:path*"],
 };

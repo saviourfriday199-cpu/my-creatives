@@ -2,9 +2,15 @@
 
 A **Learning Operating System** that turns university curricula into a living
 knowledge graph so lecturers create less by hand and students reach mastery
-faster. This repository is being built in phases; **this release is Phase 2B —
-the Platform Foundation** (identity, roles, and the university/department
-backbone). Courses, concepts, and the knowledge graph come in later phases.
+faster. This repository is being built in phases:
+
+- **Phase 2B — Platform Foundation**: identity, roles, university/department
+  backbone.
+- **Phase 3.1 — Knowledge Graph core**: courses, concepts, and the
+  prerequisite graph (DAG-enforced) that concepts are wired into.
+
+AI content extraction, the YouTube pipeline, exam readiness, analytics, and the
+AI tutor are anticipated in the data model and come in later phases.
 
 Every feature must strengthen at least one of: the knowledge graph, lecturer
 content creation, student mastery, or adaptive learning. The foundation here
@@ -63,6 +69,11 @@ to choose your own; otherwise one is generated and shown once).
 | POST   | `/api/universities`                     | super_admin       |
 | GET    | `/api/universities/:id/departments`     | authenticated     |
 | POST   | `/api/universities/:id/departments`     | admin (own scope) |
+| GET    | `/api/departments/:id/courses`          | authenticated     |
+| POST   | `/api/departments/:id/courses`          | lecturer (scope)  |
+| GET    | `/api/courses/:id`                      | authenticated     |
+| GET/POST | `/api/courses/:id/concepts`           | GET auth · POST lecturer |
+| GET/POST | `/api/courses/:id/edges`              | GET auth · POST lecturer |
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the data model, auth
 design, and the path to Postgres in production.

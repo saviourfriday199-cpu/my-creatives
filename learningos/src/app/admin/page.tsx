@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteHeader from "@/components/SiteHeader";
 import { getCurrentUser, hasAtLeast } from "@/lib/auth/current-user";
@@ -6,9 +7,11 @@ import {
   listDepartments,
   getUniversity,
 } from "@/lib/org/service";
+import { listCourses } from "@/lib/curriculum/service";
 import type { University } from "@/db/schema";
 import CreateUniversityForm from "@/components/admin/CreateUniversityForm";
 import CreateDepartmentForm from "@/components/admin/CreateDepartmentForm";
+import CreateCourseForm from "@/components/curriculum/CreateCourseForm";
 
 export const metadata = { title: "Admin — LearningOS" };
 
@@ -26,11 +29,17 @@ export default async function AdminPage() {
         )
       : [];
 
-  // Resolve departments up front so the JSX map can stay synchronous.
-  const withDepartments = await Promise.all(
+  // Resolve the university → department → course tree up front so the JSX map
+  // can stay synchronous.
+  const tree = await Promise.all(
     universities.map(async (u) => ({
       university: u,
-      departments: await listDepartments(u.id),
+      departments: await Promise.all(
+        (await listDepartments(u.id)).map(async (d) => ({
+          department: d,
+          courses: await listCourses(d.id),
+        })),
+      ),
     })),
   );
 
@@ -59,7 +68,7 @@ export default async function AdminPage() {
         )}
 
         <div className="space-y-8">
-          {withDepartments.map(({ university: u, departments }) => {
+          {tree.map(({ university: u, departments }) => {
             return (
               <section key={u.id} className="card">
                 <div className="mb-4 flex items-baseline justify-between">
@@ -78,21 +87,48 @@ export default async function AdminPage() {
                   </span>
                 </div>
 
-                {departments.length > 0 && (
-                  <ul className="mb-4 divide-y divide-line/60 border-y border-line/60">
-                    {departments.map((d) => (
-                      <li
-                        key={d.id}
-                        className="flex items-center justify-between py-2.5 text-[14px]"
-                      >
-                        <span>{d.name}</span>
+                <div className="mb-5 space-y-5">
+                  {departments.map(({ department: d, courses }) => (
+                    <div
+                      key={d.id}
+                      className="rounded-lg border border-line/60 p-4"
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="font-display text-[14px] font-medium">
+                          {d.name}
+                        </span>
                         <span className="font-mono text-[12px] text-gold">
                           {d.code}
                         </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      </div>
+
+                      {courses.length > 0 && (
+                        <ul className="mb-3 space-y-1.5">
+                          {courses.map((c) => (
+                            <li key={c.id}>
+                              <Link
+                                href={`/courses/${c.id}`}
+                                className="flex items-center justify-between text-[13px] text-muted hover:text-gold"
+                              >
+                                <span>
+                                  <span className="font-mono text-ice">
+                                    {c.code}
+                                  </span>{" "}
+                                  {c.title}
+                                </span>
+                                <span className="font-mono text-[11px] text-locked">
+                                  {c.status}
+                                </span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      <CreateCourseForm departmentId={d.id} />
+                    </div>
+                  ))}
+                </div>
 
                 <CreateDepartmentForm universityId={u.id} />
               </section>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
-import { ROLES } from "@/db/schema";
+import { ROLES, BLOOM_LEVELS, EDGE_STRENGTHS } from "@/db/schema";
 
 const email = z.string().trim().toLowerCase().email().max(254);
 const password = z.string().min(MIN_PASSWORD_LENGTH).max(200);
@@ -43,6 +43,36 @@ export const createDepartmentSchema = z.object({
 
 /** Admin-side role assignment (guarded server-side). */
 export const roleSchema = z.enum(ROLES);
+
+/* ----------------------------- curriculum ----------------------------- */
+
+export const createCourseSchema = z.object({
+  code: z.string().trim().min(2).max(32),
+  title: z.string().trim().min(2).max(200),
+  description: z.string().trim().max(2000).optional(),
+  level: z.string().trim().max(16).optional(),
+});
+
+export const createConceptSchema = z.object({
+  title: z.string().trim().min(2).max(200),
+  description: z.string().trim().max(2000).optional(),
+  module: z.string().trim().max(120).optional(),
+  position: z.coerce.number().int().min(0).max(100000).optional(),
+  difficulty: z.coerce.number().int().min(1).max(5).optional(),
+  bloomLevel: z.enum(BLOOM_LEVELS).optional(),
+  learningObjective: z.string().trim().max(1000).optional(),
+});
+
+export const createEdgeSchema = z.object({
+  fromConceptId: z.string().min(1),
+  toConceptId: z.string().min(1),
+  strength: z.enum(EDGE_STRENGTHS).default("hard"),
+  reason: z.string().trim().max(1000).optional(),
+});
+
+export type CreateCourseInput = z.infer<typeof createCourseSchema>;
+export type CreateConceptInput = z.infer<typeof createConceptSchema>;
+export type CreateEdgeInput = z.infer<typeof createEdgeSchema>;
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

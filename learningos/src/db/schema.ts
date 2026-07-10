@@ -118,6 +118,124 @@ export const sessions = sqliteTable(
   }),
 );
 
+/* ============================================================================
+ * Phase 3 — Knowledge Graph core
+ *
+ * A course belongs to a department; it is decomposed into concepts (micro-topics
+ * — one teachable idea), which are wired into a prerequisite graph via
+ * concept_edges. This is the platform's core IP: the graph drives unlocking and,
+ * later, mastery/adaptive review. Bloom level, difficulty and learning objective
+ * live on the concept so the future AI Content Engine has fields to populate and
+ * lecturers have fields to review. Content, quizzes, mastery and analytics attach
+ * to concepts in later phases.
+ * ========================================================================== */
+
+/** Publication lifecycle shared by courses and concepts. */
+export const PUBLISH_STATUS = ["draft", "published"] as const;
+export type PublishStatus = (typeof PUBLISH_STATUS)[number];
+
+/** Bloom's taxonomy cognitive levels, ascending. */
+export const BLOOM_LEVELS = [
+  "remember",
+  "understand",
+  "apply",
+  "analyze",
+  "evaluate",
+  "create",
+] as const;
+export type BloomLevel = (typeof BLOOM_LEVELS)[number];
+
+/** Prerequisite strength: hard blocks unlocking, soft is advisory. */
+export const EDGE_STRENGTHS = ["hard", "soft"] as const;
+export type EdgeStrength = (typeof EDGE_STRENGTHS)[number];
+
+export const courses = sqliteTable(
+  "courses",
+  {
+    id: text("id").primaryKey(),
+    departmentId: text("department_id")
+      .notNull()
+      .references(() => departments.id, { onDelete: "cascade" }),
+    /** Course code as printed in the syllabus, e.g. "BIO 301". */
+    code: text("code").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    /** Academic level, e.g. "100".."400". */
+    level: text("level"),
+    status: text("status", { enum: PUBLISH_STATUS }).notNull().default("draft"),
+    createdById: text("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => ({
+    uniqCode: uniqueIndex("courses_department_code_idx").on(
+      t.departmentId,
+      t.code,
+    ),
+    byDepartment: index("courses_department_idx").on(t.departmentId),
+  }),
+);
+
+export const concepts = sqliteTable(
+  "concepts",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    /** Grouping used by the UI (module/unit name). */
+    module: text("module"),
+    /** Display order within the course. */
+    position: integer("position").notNull().default(0),
+    /** Estimated difficulty, 1 (easy) – 5 (hard). Nullable until set/estimated. */
+    difficulty: integer("difficulty"),
+    bloomLevel: text("bloom_level", { enum: BLOOM_LEVELS }),
+    learningObjective: text("learning_objective"),
+    status: text("status", { enum: PUBLISH_STATUS }).notNull().default("draft"),
+    createdById: text("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => ({
+    byCourse: index("concepts_course_idx").on(t.courseId),
+  }),
+);
+
+export const conceptEdges = sqliteTable(
+  "concept_edges",
+  {
+    id: text("id").primaryKey(),
+    /** Denormalised course id — every edge is within one course; enables scoping. */
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    fromConceptId: text("from_concept_id")
+      .notNull()
+      .references(() => concepts.id, { onDelete: "cascade" }),
+    toConceptId: text("to_concept_id")
+      .notNull()
+      .references(() => concepts.id, { onDelete: "cascade" }),
+    strength: text("strength", { enum: EDGE_STRENGTHS })
+      .notNull()
+      .default("hard"),
+    reason: text("reason"),
+    ...timestamps,
+  },
+  (t) => ({
+    // At most one edge between the same ordered pair.
+    uniqPair: uniqueIndex("concept_edges_pair_idx").on(
+      t.fromConceptId,
+      t.toConceptId,
+    ),
+    byCourse: index("concept_edges_course_idx").on(t.courseId),
+    byTo: index("concept_edges_to_idx").on(t.toConceptId),
+  }),
+);
+
 export type University = typeof universities.$inferSelect;
 export type NewUniversity = typeof universities.$inferInsert;
 export type Department = typeof departments.$inferSelect;
@@ -125,3 +243,9 @@ export type NewDepartment = typeof departments.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
+export type Course = typeof courses.$inferSelect;
+export type NewCourse = typeof courses.$inferInsert;
+export type Concept = typeof concepts.$inferSelect;
+export type NewConcept = typeof concepts.$inferInsert;
+export type ConceptEdge = typeof conceptEdges.$inferSelect;
+export type NewConceptEdge = typeof conceptEdges.$inferInsert;

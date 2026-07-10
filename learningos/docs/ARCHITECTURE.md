@@ -1,9 +1,9 @@
-# LearningOS Architecture — Phase 2B (Platform Foundation)
+# LearningOS Architecture — Phase 2B → 3.1
 
-This document describes the foundation that later phases build on. It is
-intentionally scoped: **no courses, concepts, or knowledge-graph tables exist
-yet** — only identity, roles, and the organizational backbone. The design goal
-is that when those modules land, they inherit tenancy and RBAC for free.
+This document describes the foundation and the knowledge-graph core that later
+phases build on. Phase 2B is the identity/roles/organization backbone; Phase 3.1
+adds courses, concepts, and the prerequisite graph. The design goal throughout:
+each module inherits tenancy and RBAC for free.
 
 ## Product frame
 
@@ -120,10 +120,51 @@ registration/login (including duplicate-email and bad-credential paths), and
 university/department CRUD with uniqueness and scoping. HTTP flows were also
 verified end-to-end against a running server.
 
-## Known limitations (by design, this phase)
+## Phase 3.1 — Knowledge Graph core
+
+Adds the product's core IP on top of the foundation. Three tables:
+
+- **courses** — belong to a department; `code` unique within a department;
+  cascade-deleted with it; carry a publish `status` and an author (`createdById`).
+- **concepts** — micro-topics within a course (cascade-deleted with it). Beyond
+  title/description they carry **`difficulty` (1–5)**, **`bloomLevel`** (Bloom's
+  taxonomy), and **`learningObjective`** — the exact fields the future AI Content
+  Engine will draft and lecturers will review, present now so nothing is retro-
+  fitted.
+- **concept_edges** — directed prerequisite links (`from` must precede `to`),
+  `strength` `hard` (blocks unlocking) or `soft` (advisory), with a `reason`.
+  `courseId` is denormalised onto the edge for scoping and fast course-local
+  queries; the ordered pair is unique.
+
+### The graph is the core, and it stays a DAG
+
+`lib/graph/graph.ts` is pure and isomorphic — `ConceptGraph` exposes
+prerequisites, dependents, `isUnlocked(mastered)` (hard prereqs only), and
+`downstreamCount` (transitive reach, the weight that will boost review priority
+later). `wouldCreateCycle` runs in the edge service **before every insert**, so
+the prerequisite graph is guaranteed acyclic. The edge service also rejects
+self-edges, cross-course/orphan endpoints, and duplicates.
+
+### Scoping
+
+Curriculum writes require **lecturer+** and are tenancy-checked: a course resolves
+to its university via its department (`getCourseScope`), and `assertUniversityScope`
+keeps lecturers/admins within their own institution. Reads require any
+authenticated user. All of this reuses the Phase 2B RBAC unchanged.
+
+### Deferred (architecture-ready, not built)
+
+Content (YouTube-derived summaries/notes/flashcards/quizzes), mastery scores,
+exam-readiness, and lecturer analytics attach to `concepts`/`courses` in later
+phases; the AI Content Engine and AI Tutor populate the fields above for lecturer
+review. Nothing here blocks them.
+
+## Known limitations (by design, current phases)
 
 - No email verification, password reset, rate limiting, or CSRF token (SameSite
   cookies mitigate CSRF for now).
 - No self-service role elevation or user-management UI; elevated users are
   created via the seed/service layer.
+- Concept/edge editing is create + read only so far (no update/delete/reorder
+  UI yet); publishing status exists on the model but has no workflow yet.
 - SQLite single-writer semantics are fine for dev; production needs Postgres.

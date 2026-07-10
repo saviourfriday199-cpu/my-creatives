@@ -19,7 +19,15 @@ beforeAll(() => {
 
 beforeEach(() => {
   control.pragma("foreign_keys = OFF");
-  for (const t of ["sessions", "users", "departments", "universities"]) {
+  for (const t of [
+    "concept_edges",
+    "concepts",
+    "courses",
+    "sessions",
+    "users",
+    "departments",
+    "universities",
+  ]) {
     control.exec(`DELETE FROM ${t};`);
   }
   control.pragma("foreign_keys = ON");
