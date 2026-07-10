@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Threadline — Every topic knows what it's built on.</title>
+<meta name='description' content='Course videos broken into prerequisite-linked micro-topics with graph-weighted spaced repetition.'>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap' rel='stylesheet'>
+<style>
+:root{--bg:#0B1120;--bg-deep:#060910;--panel:#131B2E;--panel2:#0f1626;--gold:#E8B34C;--ice:#8FD9E8;--text:#F2EFE9;--muted:#8891A5;--locked:#3C4458;--line:rgba(255,255,255,0.12);--fd:'Space Grotesk',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-deep);color:var(--text);font-family:var(--fb);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(232,179,76,.28)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+.mono{font-family:var(--fm)}.fd{font-family:var(--fd)}
+.gold{color:var(--gold)}.ice{color:var(--ice)}.muted{color:var(--muted)}
+header.top{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line);background:rgba(6,9,16,.82);backdrop-filter:blur(10px)}
+header.top .bar{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,40px)}
+.wordmark{font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:-.01em}
+.wordmark span{color:var(--gold)}
+nav.links{display:flex;gap:4px;font-family:var(--fm);font-size:12px;letter-spacing:.05em}
+nav.links a{padding:6px 12px;border-radius:999px;text-transform:uppercase;color:var(--muted)}
+nav.links a.active{color:var(--gold)}
+nav.links a:hover{color:var(--text)}
+/* hero */
+.hero{position:relative;min-height:82vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;background:radial-gradient(120% 100% at 50% 0%,var(--bg) 0%,var(--bg-deep) 70%)}
+canvas#graph{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.veil{position:absolute;inset:0;background:linear-gradient(100deg,rgba(6,9,16,.92) 0%,rgba(6,9,16,.72) 32%,rgba(6,9,16,.15) 58%,rgba(6,9,16,0) 72%);pointer-events:none}
+.hero-content{position:relative;z-index:3;max-width:640px;padding:40px clamp(16px,4vw,40px)}
+.eyebrow{font-family:var(--fm);font-size:12px;letter-spacing:.14em;color:var(--ice);text-transform:uppercase;margin-bottom:16px;display:inline-flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ice);box-shadow:0 0 8px var(--ice)}
+h1.big{font-family:var(--fd);font-weight:600;font-size:clamp(32px,5.4vw,54px);line-height:1.08;letter-spacing:-.02em;margin-bottom:18px}
+h1.big em{font-style:normal;color:var(--gold)}
+.subhead{font-size:clamp(15px,1.7vw,17px);line-height:1.6;color:var(--muted);max-width:480px;margin-bottom:28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px}
+.btn{font-family:var(--fb);font-weight:600;font-size:14px;padding:12px 20px;border-radius:8px;cursor:pointer;border:none;transition:transform .15s,opacity .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-p{background:var(--gold);color:#14100A}
+.btn-g{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.18)}
+.stats{display:flex;gap:26px;flex-wrap:wrap;font-family:var(--fm);font-size:12px;letter-spacing:.05em;color:var(--muted)}
+.stats b{color:var(--text);font-weight:500}
+/* generic */
+main{padding:36px 0 80px}
+.crumb{font-family:var(--fm);font-size:12px;color:var(--muted);margin-bottom:20px;display:inline-block}
+.crumb:hover{color:var(--gold)}
+.eyebrow2{font-family:var(--fm);font-size:12px;letter-spacing:.14em;color:var(--ice);text-transform:uppercase;margin-bottom:8px}
+h2.title{font-family:var(--fd);font-weight:600;font-size:clamp(24px,4vw,36px);line-height:1.1;letter-spacing:-.02em;margin-bottom:12px}
+.lead{font-size:15px;line-height:1.6;color:var(--muted);max-width:640px;margin-bottom:26px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:20px;transition:border-color .2s}
+.card:hover{border-color:rgba(232,179,76,.5)}
+.card .code{font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:var(--ice)}
+.card h3{font-family:var(--fd);font-size:18px;font-weight:600;margin:6px 0;letter-spacing:-.01em}
+.card .inst{font-family:var(--fm);font-size:11px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:13px;line-height:1.55;color:var(--muted);flex:1;margin-bottom:14px}
+.bar{height:6px;border-radius:999px;background:rgba(60,68,88,.4);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--gold);border-radius:999px;transition:width .5s}
+.rowmeta{display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;color:var(--muted);margin-bottom:8px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.controls input{flex:1;min-width:220px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:10px 14px;font-size:14px}
+.chip{border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 12px;font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;background:none}
+.chip.active{border-color:var(--gold);color:var(--gold)}
+.module{margin-bottom:30px}
+.module .mh{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.module .mh h3{font-family:var(--fd);font-size:18px;font-weight:600;letter-spacing:-.01em}
+.module .mh span{font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.topic{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:14px;margin-bottom:8px;transition:border-color .2s}
+.topic.locked{border-color:rgba(255,255,255,.07);background:rgba(19,27,46,.4)}
+.topic:not(.locked):hover{border-color:rgba(232,179,76,.5)}
+.dot{margin-top:3px;width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dot i{width:10px;height:10px;border-radius:999px;background:currentColor;display:block}
+.tt{font-family:var(--fd);font-size:15px;font-weight:500;margin-bottom:2px}
+.tag{border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-left:8px}
+.tdesc{font-size:13px;line-height:1.5;color:var(--muted);margin-bottom:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;letter-spacing:.05em}
+.pill i{width:6px;height:6px;border-radius:999px;background:currentColor;display:inline-block}
+.hint{font-family:var(--fm);font-size:11px;color:var(--muted);margin-left:12px}
+.split{display:grid;grid-template-columns:1fr 280px;gap:32px}
+@media(max-width:760px){.split{grid-template-columns:1fr}}
+.frame{aspect-ratio:16/9;width:100%;border:1px solid var(--line);background:#000;border-radius:12px;overflow:hidden;margin-bottom:22px}
+.frame .ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--panel);text-align:center}
+.sect-h{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--gold);margin-bottom:8px}
+.crit{border:1px solid var(--line);background:rgba(19,27,46,.6);border-radius:10px;padding:16px;font-size:14px;line-height:1.6;margin-bottom:24px}
+.assess{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:20px}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.grade{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--line);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;background:none;color:var(--text)}
+.grade:hover:not(:disabled){border-color:rgba(232,179,76,.6)}
+.grade.active{border-color:var(--gold);background:rgba(232,179,76,.1)}
+.grade:disabled{opacity:.4;cursor:not-allowed}
+.grade b{font-family:var(--fd);font-size:18px;color:var(--gold)}
+.grade small{font-size:10px;line-height:1.2;color:var(--muted)}
+.side h4{font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.side .box{border:1px solid var(--line);background:rgba(19,27,46,.6);border-radius:12px;padding:16px;margin-bottom:20px}
+.side ul{list-style:none}
+.side li{margin-bottom:6px;font-size:13px}
+.side li a{color:var(--muted)}.side li a:hover{color:var(--gold)}
+.qitem{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.q{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);font-family:var(--fd);font-weight:600;color:var(--gold);cursor:pointer;background:none}
+.q:hover{border-color:var(--gold);background:rgba(232,179,76,.1)}
+.stat{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:16px}
+.stat b{font-family:var(--fd);font-size:26px;font-weight:600;display:block}
+.stat small{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:620px){.statgrid{grid-template-columns:repeat(2,1fr)}.grades{grid-template-columns:repeat(2,1fr)}}
+.empty{border:1px solid var(--line);background:rgba(19,27,46,.6);border-radius:12px;padding:40px;text-align:center}
+.pillars{background:var(--panel);border-top:1px solid var(--line)}
+.pillars .in{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;padding:56px clamp(16px,4vw,40px);max-width:1040px;margin:0 auto}
+@media(max-width:760px){.pillars .in{grid-template-columns:1fr}}
+.pillar h4{font-family:var(--fd);font-size:16px;font-weight:600;color:var(--gold);margin-bottom:8px}
+.pillar p{font-size:14px;line-height:1.6;color:var(--muted);max-width:320px}
+.foot{border-top:1px solid var(--line);padding:24px 0;font-family:var(--fm);font-size:11px;color:var(--locked);text-align:center}
+.loading{padding:80px;text-align:center;font-family:var(--fm);color:var(--muted)}
+</style>
+</head>
+<body>
+<header class='top'>
+  <div class='bar'>
+    <a href='#/' class='wordmark'>thread<span>line</span></a>
+    <nav class='links' id='nav'>
+      <a href='#/courses'>Courses</a>
+      <a href='#/review'>Review</a>
+      <a href='#/dashboard'>Dashboard</a>
+    </nav>
+  </div>
+</header>
+<div id='app'><div class='loading'>Loading courses…</div></div>
+<div class='foot'>Threadline · progress saved in this browser · course data served live from GitHub</div>
+
+<script>
+const DATA_BASE='https://raw.githubusercontent.com/saviourfriday199-cpu/my-creatives/main/threadline/data';
+const TYPE_LABEL={conceptual:'Concept',procedural:'Procedure',representational:'Representation',language:'Language',meta:'Meta'};
+const GRADES=[{g:1,l:'Blank',h:"Couldn't recall"},{g:2,l:'Shaky',h:'With effort'},{g:3,l:'Solid',h:'Recalled well'},{g:4,l:'Easy',h:'Knew it cold'}];
+const DAY=86400000;
+let COURSES=[], DS={};
+
+/* ---- progress store (localStorage) ---- */
+const KEY='threadline.progress.v1';
+function loadProg(){try{return JSON.parse(localStorage.getItem(KEY))||{cards:{},reviewDays:[]}}catch(e){return{cards:{},reviewDays:[]}}}
+function saveProg(p){try{localStorage.setItem(KEY,JSON.stringify(p))}catch(e){}}
+let PROG=loadProg();
+function masteredSet(){const s=new Set();for(const c of Object.values(PROG.cards))if(c.mastered)s.add(c.topicId);return s}
+
+/* ---- SM-2 ---- */
+function gradeQ(g){return {1:1,2:3,3:4,4:5}[g]}
+function reviewCard(prev,g,topicId,courseId){
+  const q=gradeQ(g),passed=q>=3,now=Date.now();
+  let ef=prev?prev.easiness:2.5, reps=prev?prev.repetitions:0, iv;
+  ef=Math.max(1.3, ef+(0.1-(5-q)*(0.08+(5-q)*0.02)));
+  if(!passed){reps=0;iv=1}else{reps++;iv=reps===1?1:reps===2?6:Math.round((prev?prev.intervalDays:1)*ef)}
+  return{topicId,courseId,repetitions:reps,easiness:+ef.toFixed(3),intervalDays:iv,due:now+iv*DAY,lastReviewed:now,lastGrade:g,mastered:(prev&&prev.mastered)||passed}
+}
+function overdueDays(c){return Math.floor((Date.now()-c.due)/DAY)}
+function isDue(c){return c.due<=Date.now()}
+function reviewPriority(c,w){return (overdueDays(c)+1)*(1+w*1.5)}
+function recordReview(topicId,courseId,g){
+  PROG.cards[topicId]=reviewCard(PROG.cards[topicId],g,topicId,courseId);
+  const d=new Date().toISOString().slice(0,10);
+  if(!PROG.reviewDays.includes(d))PROG.reviewDays.push(d);
+  saveProg(PROG);
+}
+function streak(){
+  const set=new Set(PROG.reviewDays);if(!set.size)return 0;
+  let cur=new Date();const k=d=>d.toISOString().slice(0,10);
+  if(!set.has(k(cur)))cur.setDate(cur.getDate()-1);
+  let n=0;while(set.has(k(cur))){n++;cur.setDate(cur.getDate()-1)}return n;
+}
+
+/* ---- graph helpers ---- */
+function prereqs(ds,id){return ds.deps.filter(d=>d.to===id)}
+function dependents(ds,id){return ds.deps.filter(d=>d.from===id)}
+function hardPrereqs(ds,id){return prereqs(ds,id).filter(d=>d.strength==='hard')}
+function isUnlocked(ds,id,mastered){return hardPrereqs(ds,id).every(d=>mastered.has(d.from))}
+function missingHard(ds,id,mastered){return hardPrereqs(ds,id).filter(d=>!mastered.has(d.from))}
+function softWarn(ds,id,mastered){return prereqs(ds,id).filter(d=>d.strength==='soft'&&!mastered.has(d.from))}
+function downstream(ds,id){
+  const seen=new Set();const st=dependents(ds,id).map(d=>d.to);
+  while(st.length){const c=st.pop();if(seen.has(c))continue;seen.add(c);for(const d of dependents(ds,c))st.push(d.to)}
+  return seen.size;
+}
+function graphWeight(ds,id){
+  let max=1;for(const t of ds.topics)max=Math.max(max,downstream(ds,t.id));
+  return downstream(ds,id)/max;
+}
+const topicById=(ds,id)=>ds.topics.find(t=>t.id===id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---- data load ---- */
+async function loadAll(){
+  COURSES=await fetch(DATA_BASE+'/courses.json').then(r=>r.json());
+  await Promise.all(COURSES.map(async c=>{
+    const[topics,deps]=await Promise.all([
+      fetch(DATA_BASE+'/'+c.id+'/topics.json').then(r=>r.json()),
+      fetch(DATA_BASE+'/'+c.id+'/dependencies.json').then(r=>r.json())
+    ]);
+    DS[c.id]={course:c,topics,deps};
+  }));
+}
+
+/* ---- router ---- */
+function setNav(){
+  const h=location.hash||'#/';
+  document.querySelectorAll('#nav a').forEach(a=>{
+    const href=a.getAttribute('href');
+    a.classList.toggle('active', h===href||h.startsWith(href+'/'));
+  });
+}
+function router(){
+  setNav();
+  const app=document.getElementById('app');
+  const parts=(location.hash.replace(/^#\//,'')||'').split('/').filter(Boolean);
+  if(parts.length===0){renderHome(app);return}
+  if(parts[0]==='courses'){renderCatalog(app);return}
+  if(parts[0]==='review'){renderReview(app);return}
+  if(parts[0]==='dashboard'){renderDashboard(app);return}
+  if(parts[0]==='course'&&parts[1]&&!parts[2]){renderCourse(app,parts[1]);return}
+  if(parts[0]==='course'&&parts[1]&&parts[2]){renderLesson(app,parts[1],parts[2]);return}
+  renderHome(app);
+}
+
+/* ---- home / hero ---- */
+function renderHome(app){
+  const nT=Object.values(DS).reduce((n,d)=>n+d.topics.length,0);
+  const nE=Object.values(DS).reduce((n,d)=>n+d.deps.length,0);
+  app.innerHTML=`
+  <section class='hero'>
+    <canvas id='graph'></canvas><div class='veil'></div>
+    <div class='hero-content'>
+      <div class='eyebrow'>${COURSES.length} courses live on the channel</div>
+      <h1 class='big'>Every topic knows<br>what it's <em>built on.</em></h1>
+      <p class='subhead'>Course videos broken into small topics and threaded by prerequisite — so nothing unlocks before you're ready, and spaced review makes sure nothing gets forgotten after.</p>
+      <div class='cta'>
+        <a class='btn btn-p' href='#/courses'>Explore courses</a>
+        <a class='btn btn-g' href='#/review'>Review queue</a>
+      </div>
+      <div class='stats'><span><b>${COURSES.length}</b> courses</span><span><b>${nT}</b> micro-topics</span><span><b>${nE}</b> prerequisite links</span></div>
+    </div>
+  </section>
+  <section class='pillars'><div class='in'>
+    <div class='pillar'><h4>01 — Course-specific video</h4><p>Every video is generated from the real syllabus of one course at one school, not generic content.</p></div>
+    <div class='pillar'><h4>02 — Prerequisite unlocking</h4><p>Topics are wired into a dependency graph. A lesson only unlocks once what it's built on has been mastered.</p></div>
+    <div class='pillar'><h4>03 — Spaced repetition</h4><p>Review priority is weighted by the graph itself — topics more of the tree depends on come back first.</p></div>
+  </div></section>`;
+  startHero();
+}
+
+/* ---- catalog ---- */
+let catQuery='', catSubject='all';
+function renderCatalog(app){
+  const mastered=masteredSet();
+  const subjects=[...new Set(COURSES.map(c=>c.subject).filter(Boolean))].sort();
+  const chips=['all',...subjects].map(s=>`<button class='chip ${catSubject===s?'active':''}' data-s='${esc(s)}'>${s==='all'?'All':esc(s)}</button>`).join('');
+  const q=catQuery.toLowerCase();
+  const list=COURSES.filter(c=>{
+    if(catSubject!=='all'&&c.subject!==catSubject)return false;
+    if(!q)return true;
+    return [c.title,c.code,c.institution,c.subject,c.description].filter(Boolean).some(f=>f.toLowerCase().includes(q));
+  });
+  const cards=list.map(c=>{
+    const ds=DS[c.id];const ids=ds.topics.map(t=>t.id);
+    const m=ids.filter(id=>mastered.has(id)).length;const pct=Math.round(m/ids.length*100);
+    return `<a class='card' href='#/course/${c.id}'>
+      <div class='rowmeta'><span class='code'>${esc(c.code)}</span><span>L${esc(c.level)}</span></div>
+      <h3>${esc(c.title)}</h3><div class='inst'>${esc(c.institution)}</div>
+      <p>${esc(c.description)}</p>
+      <div class='rowmeta'><span>${c.topic_count} topics</span>${m>0?`<span class='gold'>${m}/${ids.length} mastered</span>`:''}</div>
+      ${m>0?`<div class='bar'><i style='width:${pct}%'></i></div>`:''}
+    </a>`;
+  }).join('');
+  app.innerHTML=`<div class='wrap'><main>
+    <div class='eyebrow2'>Course catalog</div>
+    <h2 class='title'>Pick a course. Follow the thread.</h2>
+    <p class='lead'>Each course is broken into small micro-topics wired by prerequisite. Your progress unlocks what comes next and schedules what needs reviewing.</p>
+    <div class='controls'><input id='cq' type='search' placeholder='Search by course, code or institution…' value='${esc(catQuery)}'><div style='display:flex;gap:6px;flex-wrap:wrap'>${chips}</div></div>
+    ${list.length?`<div class='grid'>${cards}</div>`:`<p class='loading'>No courses match “${esc(catQuery)}”.</p>`}
+  </main></div>`;
+  const cq=document.getElementById('cq');
+  cq.oninput=e=>{catQuery=e.target.value;const app=document.getElementById('app');renderCatalog(app);const n=document.getElementById('cq');n.focus();n.setSelectionRange(n.value.length,n.value.length)};
+  document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{catSubject=b.dataset.s;renderCatalog(document.getElementById('app'))});
+}
+
+/* ---- course topic map ---- */
+function statusFor(ds,t,mastered){
+  if(!isUnlocked(ds,t.id,mastered))return'locked';
+  if(mastered.has(t.id)){const c=PROG.cards[t.id];return c&&isDue(c)?'due':'mastered'}
+  return'available';
+}
+const STPILL={mastered:['gold','Mastered'],due:['ice','Review due'],available:['ice','Available'],locked:['muted','Locked']};
+function renderCourse(app,id){
+  const ds=DS[id];if(!ds){app.innerHTML='<div class="wrap"><main>Course not found.</main></div>';return}
+  const mastered=masteredSet();
+  const order=[];const map={};
+  for(const t of ds.topics){if(!map[t.module]){map[t.module]=[];order.push(t.module)}map[t.module].push(t)}
+  const m=ds.topics.filter(t=>mastered.has(t.id)).length;const pct=Math.round(m/ds.topics.length*100);
+  const modules=order.map(mod=>{
+    const ts=map[mod];const ws=ts.map(t=>t.week);const lo=Math.min(...ws),hi=Math.max(...ws);
+    const rows=ts.map(t=>{
+      const st=statusFor(ds,t,mastered);const locked=st==='locked';
+      const miss=missingHard(ds,t.id,mastered).map(d=>topicById(ds,d.from).title);
+      const soft=softWarn(ds,t.id,mastered).map(d=>topicById(ds,d.from).title);
+      const w=downstream(ds,t.id);const[cls,lab]=STPILL[st];
+      const inner=`<div class='topic ${locked?'locked':''}'>
+        <div class='dot ${locked?'muted':'gold'}'>${locked?lockSvg():'<i></i>'}</div>
+        <div style='min-width:0;flex:1'>
+          <div><span class='tt ${locked?'muted':''}'>${esc(t.title)}</span><span class='tag'>${TYPE_LABEL[t.type]}</span>${w>0?`<span class='hint'>${w} downstream</span>`:''}</div>
+          <div class='tdesc'>${esc(t.description)}</div>
+          <div><span class='pill ${cls}'><i></i>${lab}</span>${locked&&miss.length?`<span class='hint'>Needs: ${esc(miss.join(', '))}</span>`:''}${!locked&&soft.length?`<span class='hint ice'>Recommended first: ${esc(soft.join(', '))}</span>`:''}</div>
+        </div></div>`;
+      return locked?`<div style='cursor:not-allowed'>${inner}</div>`:`<a href='#/course/${id}/${t.id}'>${inner}</a>`;
+    }).join('');
+    return `<div class='module'><div class='mh'><h3>${esc(mod)}</h3><span>${lo===hi?'Week '+lo:'Weeks '+lo+'–'+hi}</span></div>${rows}</div>`;
+  }).join('');
+  app.innerHTML=`<div class='wrap'><main>
+    <a class='crumb' href='#/courses'>← All courses</a>
+    <div class='eyebrow2'>${esc(ds.course.code)} · ${esc(ds.course.institution)} · Level ${esc(ds.course.level)}</div>
+    <h2 class='title'>${esc(ds.course.title)}</h2>
+    <p class='lead'>${esc(ds.course.description)}</p>
+    <div class='box' style='margin-bottom:28px'><div class='rowmeta'><span>Course progress</span><span class='gold'>${m}/${ds.topics.length} mastered</span></div><div class='bar'><i style='width:${pct}%'></i></div></div>
+    ${modules}
+  </main></div>`;
+}
+
+/* ---- lesson ---- */
+function renderLesson(app,id,topicId){
+  const ds=DS[id];const t=ds&&topicById(ds,topicId);
+  if(!t){app.innerHTML='<div class="wrap"><main>Topic not found.</main></div>';return}
+  const mastered=masteredSet();
+  const miss=missingHard(ds,topicId,mastered);const locked=miss.length>0;
+  const hasVideo=t.video_id&&t.video_id!=='PLACEHOLDER';
+  const card=PROG.cards[topicId];
+  const pre=prereqs(ds,topicId);const deps=dependents(ds,topicId);const w=downstream(ds,topicId);
+  const preList=pre.map(d=>{const p=topicById(ds,d.from);return `<li><a href='#/course/${id}/${p.id}'>${mastered.has(p.id)?'● ':'○ '}${esc(p.title)}${d.strength==='soft'?' <span class="ice">soft</span>':''}</a></li>`}).join('');
+  const depList=deps.map(d=>{const p=topicById(ds,d.to);return `<li><a href='#/course/${id}/${p.id}'>${esc(p.title)}</a></li>`}).join('');
+  app.innerHTML=`<div class='wrap'><main>
+    <a class='crumb' href='#/course/${id}'>← ${esc(ds.course.code)} · ${esc(ds.course.title)}</a>
+    <div class='eyebrow2'>${esc(t.module)} · Week ${t.week}</div>
+    <h2 class='title'>${esc(t.title)}</h2>
+    ${locked?`<div class='box' style='border-color:rgba(232,179,76,.4);background:rgba(232,179,76,.05);margin-bottom:20px'><b>This topic is still locked.</b><div class='muted' style='margin-top:4px;font-size:13px'>Master first: ${miss.map(d=>{const p=topicById(ds,d.from);return `<a class='gold' href='#/course/${id}/${p.id}'>${esc(p.title)}</a>`}).join(', ')}.</div></div>`:''}
+    <div class='frame'>${hasVideo?`<iframe width='100%' height='100%' src='https://www.youtube-nocookie.com/embed/${t.video_id}' title='${esc(t.title)}' allowfullscreen frameborder='0'></iframe>`:`<div class='ph'><span class='mono muted'>Video pending · ${Math.floor(t.video_duration_seconds/60)}:${String(t.video_duration_seconds%60).padStart(2,'0')}</span><span style='font-size:12px;max-width:280px' class='muted'>Wire a real YouTube id into this topic to embed the lesson.</span></div>`}</div>
+    <div class='split'>
+      <div>
+        <div class='sect-h'>What this covers</div><p class='lead' style='margin-bottom:22px'>${esc(t.description)}</p>
+        <div class='sect-h'>Mastery criteria</div><div class='crit'>${esc(t.mastery_criteria)}</div>
+        <div class='assess'>
+          <div class='sect-h' style='color:var(--text)'>How well did you understand this?</div>
+          <div class='muted' style='font-size:13px'>Your honest rating schedules the next review. Weaker recall comes back sooner.</div>
+          <div class='grades'>${GRADES.map(g=>`<button class='grade' data-g='${g.g}' ${locked?'disabled':''}><b>${g.g}</b><span>${g.l}</span><small>${g.h}</small></button>`).join('')}</div>
+          <div id='saved' class='mono ice' style='margin-top:14px;display:none'></div>
+        </div>
+      </div>
+      <div class='side'>
+        ${card?`<div class='box'><h4>Your review state</h4><div style='font-size:13px' class='mono'>Status: ${card.mastered?'Mastered':'Learning'}<br>Reps: ${card.repetitions}<br>Interval: ${card.intervalDays}d<br>Due: ${overdueDays(card)>=0?'Now':new Date(card.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</div></div>`:''}
+        <div class='box'><h4>Graph weight</h4><div style='font-size:13px' class='muted'><b class='fd gold' style='font-size:20px'>${w}</b> topic${w===1?'':'s'} downstream depend on this.</div></div>
+        ${pre.length?`<div class='side'><h4>Built on</h4><ul>${preList}</ul></div>`:''}
+        ${deps.length?`<div class='side' style='margin-top:20px'><h4>Unlocks next</h4><ul>${depList}</ul></div>`:''}
+      </div>
+    </div>
+  </main></div>`;
+  document.querySelectorAll('.grade').forEach(b=>b.onclick=()=>{
+    if(locked)return;
+    recordReview(topicId,id,+b.dataset.g);
+    document.querySelectorAll('.grade').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    const c=PROG.cards[topicId];const s=document.getElementById('saved');
+    s.style.display='block';s.textContent=`Saved. Next review in ${c.intervalDays} ${c.intervalDays===1?'day':'days'} · ${new Date(c.due).toLocaleDateString(undefined,{month:'short',day:'numeric'})}.`;
+  });
+}
+
+/* ---- review queue ---- */
+function renderReview(app){
+  const items=[];
+  for(const ds of Object.values(DS)){
+    for(const t of ds.topics){
+      const c=PROG.cards[t.id];if(!c||!isDue(c))continue;
+      const w=graphWeight(ds,t.id);
+      items.push({courseId:ds.course.id,code:ds.course.code,topicId:t.id,title:t.title,module:t.module,overdue:overdueDays(c),down:downstream(ds,t.id),priority:reviewPriority(c,w)});
+    }
+  }
+  items.sort((a,b)=>b.priority-a.priority);
+  let body;
+  if(!items.length){
+    body=`<div class='empty'><div class='fd' style='font-size:18px;font-weight:600;margin-bottom:8px'>Nothing due right now.</div><p class='muted' style='margin-bottom:18px'>Study some topics and rate your recall — they'll reappear here on schedule.</p><a class='btn btn-p' href='#/courses'>Browse courses</a></div>`;
+  }else{
+    body=`<p class='mono muted' style='margin-bottom:14px'>${items.length} topic${items.length===1?'':'s'} due</p>`+items.map((it,i)=>`
+      <div class='qitem'>
+        <div style='min-width:0;flex:1'>
+          <div class='mono' style='font-size:11px;color:var(--muted);margin-bottom:4px'><span class='ice'>#${i+1}</span> ${esc(it.code)} · ${esc(it.module)}</div>
+          <a class='fd' style='font-size:16px;font-weight:500' href='#/course/${it.courseId}/${it.topicId}'>${esc(it.title)}</a>
+          <div class='mono' style='font-size:11px;color:var(--muted);margin-top:5px;display:flex;gap:16px;flex-wrap:wrap'><span class='${it.overdue>0?'gold':''}'>${it.overdue>0?it.overdue+'d overdue':'due today'}</span><span>${it.down} downstream</span><span>priority ${it.priority.toFixed(1)}</span></div>
+        </div>
+        <div style='display:flex;gap:4px;align-items:flex-start'>${[1,2,3,4].map(g=>`<button class='q' data-t='${it.topicId}' data-c='${it.courseId}' data-g='${g}'>${g}</button>`).join('')}</div>
+      </div>`).join('');
+  }
+  app.innerHTML=`<div class='wrap'><main>
+    <div class='eyebrow2'>Review queue</div>
+    <h2 class='title'>Due today, most important first.</h2>
+    <p class='lead'>Ranked by how overdue each topic is and how much of the graph is built on it — forgetting a load-bearing topic resurfaces it sooner.</p>
+    ${body}
+  </main></div>`;
+  document.querySelectorAll('.q').forEach(b=>b.onclick=()=>{recordReview(b.dataset.t,b.dataset.c,+b.dataset.g);renderReview(document.getElementById('app'))});
+}
+
+/* ---- dashboard ---- */
+function renderDashboard(app){
+  const mastered=masteredSet();
+  const allT=Object.values(DS).reduce((n,d)=>n+d.topics.length,0);
+  const m=Object.values(DS).reduce((n,d)=>n+d.topics.filter(t=>mastered.has(t.id)).length,0);
+  const due=Object.values(PROG.cards).filter(isDue).length;
+  const rows=COURSES.map(c=>{
+    const ds=DS[c.id];const ids=ds.topics.map(t=>t.id);
+    const mm=ids.filter(id=>mastered.has(id)).length;const pct=Math.round(mm/ids.length*100);
+    const dd=ids.filter(id=>{const cd=PROG.cards[id];return cd&&isDue(cd)}).length;
+    return `<a class='card' style='margin-bottom:12px' href='#/course/${c.id}'>
+      <div class='rowmeta'><span><span class='code'>${esc(c.code)}</span> <span class='fd' style='font-weight:500'>${esc(c.title)}</span></span><span>${dd>0?`<span class='gold'>${dd} due</span> `:''}${mm}/${ids.length}</span></div>
+      <div class='bar'><i style='width:${pct}%'></i></div></a>`;
+  }).join('');
+  const started=m>0||PROG.reviewDays.length>0;
+  app.innerHTML=`<div class='wrap'><main>
+    <div class='eyebrow2'>Dashboard</div><h2 class='title'>Where you stand.</h2>
+    <div class='statgrid'>
+      <div class='stat'><b>${m}/${allT}</b><small>Topics mastered</small></div>
+      <div class='stat'><b class='${due>0?'gold':''}'>${due}</b><small>Due today</small></div>
+      <div class='stat'><b>${streak()}</b><small>Day streak</small></div>
+      <div class='stat'><b>${PROG.reviewDays.length}</b><small>Days reviewed</small></div>
+    </div>
+    ${!started?`<div class='empty' style='margin-bottom:28px'><p class='muted' style='margin-bottom:16px'>You haven't studied anything yet.</p><a class='btn btn-p' href='#/courses'>Start a course</a></div>`:''}
+    <div class='sect-h' style='color:var(--text);margin-bottom:14px'>Per-course progress</div>
+    ${rows}
+    <p class='mono' style='text-align:center;color:var(--locked);margin-top:24px;font-size:11px'>Progress is stored in this browser.</p>
+  </main></div>`;
+}
+function lockSvg(){return "<svg viewBox='0 0 24 24' width='13' height='13' fill='none'><rect x='5' y='11' width='14' height='9' rx='2' stroke='currentColor' stroke-width='1.6'/><path d='M8 11V8a4 4 0 0 1 8 0v3' stroke='currentColor' stroke-width='1.6'/></svg>"}
+
+/* ---- hero canvas animation ---- */
+function startHero(){
+  const canvas=document.getElementById('graph');if(!canvas)return;
+  const ctx=canvas.getContext('2d');const hero=canvas.parentElement;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W,H,DPR;const clusters=[{label:'BIO 301 · CELLULAR RESPIRATION',fx:0.62,fy:0.28,count:16,cx:0,cy:0},{label:'CHM 210 · REACTION KINETICS',fx:0.85,fy:0.62,count:15,cx:0,cy:0},{label:'MTH 204 · LINEAR SYSTEMS',fx:0.55,fy:0.80,count:16,cx:0,cy:0}];
+  let nodes=[],edges=[],cross=[];
+  function build(){nodes=[];edges=[];let id=0;clusters.forEach((cl,ci)=>{const cn=[];for(let i=0;i<cl.count;i++){const a=Math.random()*Math.PI*2,d=Math.pow(Math.random(),0.6);const n={id:id++,cluster:ci,ox:Math.cos(a)*d,oy:Math.sin(a)*d,x:0,y:0,cx:0,cy:0,r:3.4,bp:Math.random()*Math.PI*2,bs:0.4+Math.random()*0.3,ba:6+Math.random()*6,state:i===0?'mastered':'locked',root:i===0};cn.push(n);nodes.push(n)}for(let i=1;i<cn.length;i++){const mb=Math.min(i,3);const bi=i-1-Math.floor(Math.random()*mb);edges.push({from:cn[Math.max(0,bi)],to:cn[i],anim:false,p:0});if(Math.random()<0.28&&i>2){const ex=Math.floor(Math.random()*(i-1));if(ex!==bi)edges.push({from:cn[ex],to:cn[i],anim:false,p:0})}}});cross=[{from:nodes[3],to:nodes[clusters[0].count+5]},{from:nodes[clusters[0].count+2],to:nodes[clusters[0].count+clusters[1].count+4]}]}
+  function layout(){const sp=Math.min(W,H)*0.16;clusters.forEach(cl=>{cl.cx=cl.fx*W;cl.cy=cl.fy*H});nodes.forEach(n=>{const cl=clusters[n.cluster];n.cx=cl.cx+n.ox*sp;n.cy=cl.cy+n.oy*sp})}
+  function resize(){DPR=Math.min(devicePixelRatio||1,2);W=hero.clientWidth;H=hero.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);layout()}
+  function advance(){clusters.forEach((cl,ci)=>{if(edges.some(e=>e.anim&&e.from.cluster===ci))return;const cand=edges.filter(e=>e.from.cluster===ci&&e.from.state==='mastered'&&e.to.state==='locked'&&!e.anim);if(cand.length){const p=cand[Math.floor(Math.random()*cand.length)];p.anim=true;p.p=0}else{const cn=nodes.filter(n=>n.cluster===ci);if(cn.every(n=>n.state==='mastered'))setTimeout(()=>cn.forEach(n=>{if(!n.root)n.state='locked'}),2600)}})}
+  function col(s,a){return s==='mastered'?`rgba(232,179,76,${a})`:s==='unlocked'?`rgba(143,217,232,${a})`:`rgba(60,68,88,${a})`}
+  let last=performance.now();
+  function frame(now){const dt=Math.min(now-last,50);last=now;if(!document.getElementById('graph'))return;ctx.clearRect(0,0,W,H);const t=now/1000;
+    nodes.forEach(n=>{n.x=n.cx+Math.sin(t*n.bs+n.bp)*n.ba;n.y=n.cy+Math.cos(t*n.bs*0.8+n.bp)*n.ba*0.6});
+    ctx.setLineDash([2,5]);cross.forEach(e=>{ctx.strokeStyle='rgba(143,217,232,0.10)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke()});ctx.setLineDash([]);
+    edges.forEach(e=>{const bl=e.from.state==='locked'&&e.to.state==='locked';const a=bl?0.07:e.to.state==='mastered'?0.30:0.16;ctx.strokeStyle=col(e.to.state==='mastered'?'mastered':bl?'locked':'unlocked',a);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(e.from.x,e.from.y);ctx.lineTo(e.to.x,e.to.y);ctx.stroke();
+      if(e.anim&&!reduce){e.p+=dt/900;const p=Math.min(e.p,1);const px=e.from.x+(e.to.x-e.from.x)*p,py=e.from.y+(e.to.y-e.from.y)*p;ctx.beginPath();ctx.arc(px,py,2.6,0,Math.PI*2);ctx.fillStyle='#F5D48A';ctx.shadowColor='#E8B34C';ctx.shadowBlur=10;ctx.fill();ctx.shadowBlur=0;if(p>=1){e.anim=false;e.to.state='unlocked';setTimeout(()=>{e.to.state='mastered'},600)}}else if(e.anim&&reduce){e.anim=false;e.to.state='mastered'}});
+    nodes.forEach(n=>{if(n.state==='mastered'){ctx.beginPath();ctx.arc(n.x,n.y,n.r+2,0,Math.PI*2);ctx.fillStyle='rgba(232,179,76,0.14)';ctx.fill();ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle='#E8B34C';ctx.shadowColor='#E8B34C';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0}else if(n.state==='unlocked'){ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.strokeStyle='#8FD9E8';ctx.lineWidth=1.4;ctx.stroke()}else{ctx.beginPath();ctx.arc(n.x,n.y,n.r-0.8,0,Math.PI*2);ctx.fillStyle='rgba(60,68,88,0.7)';ctx.fill()}});
+    ctx.font='11px "JetBrains Mono", monospace';ctx.textAlign='center';clusters.forEach(cl=>{ctx.fillStyle='rgba(136,145,165,0.55)';ctx.fillText(cl.label,cl.cx,cl.cy-Math.min(W,H)*0.16-14)});
+    if(!reduce&&document.getElementById('graph'))requestAnimationFrame(frame)}
+  build();resize();addEventListener('resize',resize);
+  if(reduce){nodes.forEach((n,i)=>{if(i%3===0)n.state='mastered';else if(i%3===1)n.state='unlocked'});frame(performance.now())}else{setInterval(()=>{if(document.getElementById('graph'))advance()},1500);requestAnimationFrame(frame)}
+}
+
+/* ---- boot ---- */
+window.addEventListener('hashchange',router);
+loadAll().then(router).catch(e=>{document.getElementById('app').innerHTML='<div class="loading">Could not load course data.<br>'+esc(e.message)+'</div>'});
+</script>
+</body>
+</html>
