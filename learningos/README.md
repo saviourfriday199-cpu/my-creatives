@@ -100,5 +100,5 @@ design, and the path to Postgres in production.
 ## Tech stack
 
 Next.js 15 (App Router) · React 19 · TypeScript (strict) · Drizzle ORM ·
-better-sqlite3 (dev/test) → Postgres (prod) · bcrypt · Zod · Tailwind v4 ·
+libSQL (file: dev/test → Turso prod) · bcrypt · Zod · Tailwind v4 ·
 Vitest.

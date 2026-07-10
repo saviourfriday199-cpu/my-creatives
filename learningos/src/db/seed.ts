@@ -1,23 +1,23 @@
 /**
  * Seed the database with a super-admin and one demo university + department.
- * Idempotent: re-running will not create duplicates.
+ * Idempotent. Works against a local file: DB or a remote Turso libsql:// URL.
  *
  * Credentials come from env (SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD) or fall
  * back to safe local defaults. Change them before any shared deployment.
  */
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm";
 import { randomUUID, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import * as schema from "./schema";
 
-const file = process.env.DATABASE_URL?.replace(/^file:/, "") ?? "learningos.db";
-const sqlite = new Database(file);
-sqlite.pragma("foreign_keys = ON");
-const db = drizzle(sqlite, { schema });
-
 async function main() {
+  const url = process.env.DATABASE_URL ?? "file:learningos.db";
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
+  const client = createClient(authToken ? { url, authToken } : { url });
+  const db = drizzle(client, { schema });
+
   const email = (process.env.SEED_ADMIN_EMAIL ?? "admin@learningos.local")
     .trim()
     .toLowerCase();
@@ -25,14 +25,13 @@ async function main() {
     process.env.SEED_ADMIN_PASSWORD ?? randomBytes(9).toString("base64url");
   const generated = !process.env.SEED_ADMIN_PASSWORD;
 
-  // Demo university
-  let uni = db
+  let uni = await db
     .select()
     .from(schema.universities)
     .where(eq(schema.universities.slug, "gombe-state-university"))
     .get();
   if (!uni) {
-    [uni] = db
+    [uni] = await db
       .insert(schema.universities)
       .values({
         id: randomUUID(),
@@ -40,45 +39,38 @@ async function main() {
         slug: "gombe-state-university",
         country: "Nigeria",
       })
-      .returning()
-      .all();
+      .returning();
     console.log("Created university:", uni.name);
   }
 
-  // Demo department
-  const dept = db
+  const dept = await db
     .select()
     .from(schema.departments)
     .where(eq(schema.departments.code, "BIO"))
     .get();
   if (!dept) {
-    db.insert(schema.departments)
-      .values({
-        id: randomUUID(),
-        universityId: uni.id,
-        name: "Biological Sciences",
-        code: "BIO",
-      })
-      .run();
+    await db.insert(schema.departments).values({
+      id: randomUUID(),
+      universityId: uni.id,
+      name: "Biological Sciences",
+      code: "BIO",
+    });
     console.log("Created department: Biological Sciences (BIO)");
   }
 
-  // Super admin
-  const existing = db
+  const existing = await db
     .select()
     .from(schema.users)
     .where(eq(schema.users.email, email))
     .get();
   if (!existing) {
-    db.insert(schema.users)
-      .values({
-        id: randomUUID(),
-        email,
-        name: "Platform Admin",
-        passwordHash: await bcrypt.hash(password, 12),
-        role: "super_admin",
-      })
-      .run();
+    await db.insert(schema.users).values({
+      id: randomUUID(),
+      email,
+      name: "Platform Admin",
+      passwordHash: await bcrypt.hash(password, 12),
+      role: "super_admin",
+    });
     console.log("\nCreated super-admin:");
     console.log(`  email:    ${email}`);
     console.log(
@@ -90,7 +82,7 @@ async function main() {
     console.log(`Super-admin ${email} already exists — left unchanged.`);
   }
 
-  sqlite.close();
+  client.close();
 }
 
 main().catch((e) => {

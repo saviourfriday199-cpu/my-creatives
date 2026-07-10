@@ -1,27 +1,24 @@
 import "server-only";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient, type Client } from "@libsql/client";
 import * as schema from "./schema";
 
 /**
- * Database singleton. Uses better-sqlite3 for dev/test. In production the
- * connection URL points at Postgres and the driver import is swapped here (the
- * rest of the app talks only to the exported `db`, so nothing else changes).
+ * Database singleton on libSQL. `DATABASE_URL` is a local `file:` path in dev
+ * and tests, and a remote `libsql://…turso.io` URL in production (with
+ * `DATABASE_AUTH_TOKEN`). The libSQL client handles both, so the same Drizzle
+ * code runs everywhere and the SQLite migrations are reused unchanged.
  *
- * The instance is cached on globalThis so Next's dev hot-reload doesn't open a
- * new file handle on every request.
+ * Cached on globalThis so Next's dev hot-reload doesn't open a new client per
+ * request.
  */
-const DB_FILE =
-  process.env.DATABASE_URL?.replace(/^file:/, "") ?? "learningos.db";
+const url = process.env.DATABASE_URL ?? "file:learningos.db";
+const authToken = process.env.DATABASE_AUTH_TOKEN;
 
-const globalForDb = globalThis as unknown as {
-  __sqlite?: Database.Database;
-};
+const globalForDb = globalThis as unknown as { __libsql?: Client };
+const client =
+  globalForDb.__libsql ?? createClient(authToken ? { url, authToken } : { url });
+if (process.env.NODE_ENV !== "production") globalForDb.__libsql = client;
 
-const sqlite = globalForDb.__sqlite ?? new Database(DB_FILE);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-if (process.env.NODE_ENV !== "production") globalForDb.__sqlite = sqlite;
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 export { schema };
